@@ -48,11 +48,11 @@ public class Studienkonto {
         return m_instance;
     }
 
-    public LinkedHashMap<String, Grade> poll() throws IOException {
-        LinkedHashMap<String, Grade> parsed_grades = new LinkedHashMap<>();
+    public LinkedHashMap<String, Grade> poll() throws Exception {
+
         if ( m_login == null || m_password == null) {
             Log.w(LOGTAG, "no login available");
-            return parsed_grades;
+            throw new Exception("login mising");
         }
         HttpURLConnection uc = new EndPoint(url).get_connection();
         uc.setRequestMethod("GET");
@@ -115,7 +115,7 @@ public class Studienkonto {
             elementsiterator.next(); // ab der 2. reihe
         }
 
-
+        LinkedHashMap<String, Grade> parsed_grades = new LinkedHashMap<>();
         do {
             Double grade = null;
             Element row = elementsiterator.next();

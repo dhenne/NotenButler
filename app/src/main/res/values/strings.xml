@@ -10,7 +10,7 @@
     <string name="btnStop">stop service</string>
     <string name="btnBind">bind</string>
     <string name="btnUnbind">unbind</string>
-    <string name="btnUpby1">+1</string>
+    <string name="btnUpby1">vorh. Noten löschen</string>
     <string name="btnUpby10">+10</string>
     <string name="neue_note_erhaten">Neue Note erhalten</string>
     <string name="title_activity_settings">Settings</string>

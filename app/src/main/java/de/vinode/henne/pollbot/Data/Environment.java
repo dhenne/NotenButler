@@ -25,10 +25,10 @@ import java.util.Map;
 public class Environment {
 
     private LinkedHashMap<String, Grade> PERSISTENT_LIST;
-    private File persistent_data_location;
+    private final static String data_store_filename = "grades.txt";
     private Charset charset;
     private static Environment m_instance;
-    private final static String data_store_filename = "grades.txt";
+
 
     private static final String LOGTAG = "Environment";
 
@@ -82,9 +82,10 @@ public class Environment {
         Boolean needs_update = false;
         LinkedHashSet<String> found = new LinkedHashSet<>();
         for (Map.Entry<String, Grade> remote_grade_entry : _remote_list.entrySet()) {
-            if ((!PERSISTENT_LIST.containsKey(remote_grade_entry.getKey()) && (remote_grade_entry.getValue().grade() != 0.0)) ||
+            if (    (!PERSISTENT_LIST.containsKey(remote_grade_entry.getKey()) && (remote_grade_entry.getValue().grade() != 0.0)) ||
                     (PERSISTENT_LIST.containsKey(remote_grade_entry.getKey()) &&
-                            PERSISTENT_LIST.get(remote_grade_entry.getKey()).grade() != remote_grade_entry.getValue().grade())) {
+                            PERSISTENT_LIST.get(remote_grade_entry.getKey()).grade() != remote_grade_entry.getValue().grade())
+                    ) {
                 needs_update = true;
                 PERSISTENT_LIST.put(remote_grade_entry.getKey(), remote_grade_entry.getValue());
                 found.add(remote_grade_entry.getKey());
@@ -107,10 +108,19 @@ public class Environment {
     private Environment() {
         PERSISTENT_LIST = new java.util.LinkedHashMap<>();
         Charset.defaultCharset();
-        persistent_data_location = new File(android.os.Environment.getDataDirectory() + "/grades.txt");
     }
 
     public LinkedHashMap<String, Grade> PERSISTENT_LIST() {
         return PERSISTENT_LIST;
+    }
+
+    public void deleteGrades(Context _context) {
+        File file = new File(_context.getFilesDir() + "/" + data_store_filename);
+        if (file.delete()) {
+            PERSISTENT_LIST.clear();
+            Log.i(LOGTAG, "deleted saved grades");
+        } else {
+            Log.e(LOGTAG, "error deleting grades");
+        }
     }
 }

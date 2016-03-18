@@ -22,6 +22,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -33,7 +35,7 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
     public final static String EXTRA_LOGIN = "de.vinode.henne.firstapp.LOGIN";
     public final static String EXTRA_PASSWORD = "de.vinode.henne.firstapp.PASSWORD";
 
-    private Button btnStart, btnStop, btnBind, btnUnbind, btnUpby1, btnUpby10;
+    private Button btnStart, btnStop, btnBind, btnUnbind, delete_grades, btnUpby10;
     private TextView textStatus, textIntValue, textStrValue;
     private Messenger mServiceMessenger = null;
     boolean mIsBound;
@@ -48,12 +50,7 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
      */
     public void sendLogin(View view) {
         //Intent intent = new Intent(this, DisplayMessageActivity.class);
-        if (!mIsBound) {
-            if (!PollService.isRunning()) {
-                startService(new Intent(MyActivity.this, PollService.class));
-            }
-            doBindService();
-        }
+        startAndBind();
         EditText login = (EditText) findViewById(R.id.login_dialog);
         EditText password = (EditText) findViewById(R.id.password_dialog);
         Bundle data = new Bundle();
@@ -73,6 +70,15 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
         }
     }
 
+    private void startAndBind() {
+        if (!mIsBound) {
+            if (!PollService.isRunning()) {
+                startService(new Intent(MyActivity.this, PollService.class));
+            }
+            doBindService();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,14 +86,7 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        updateFabOncklickListener();
 
         btnStart = (Button) findViewById(R.id.btnStart);
         btnStop = (Button) findViewById(R.id.btnStop);
@@ -96,18 +95,30 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
         textStatus = (TextView) findViewById(R.id.textStatus);
         textIntValue = (TextView) findViewById(R.id.textIntValue);
         textStrValue = (TextView) findViewById(R.id.textStrValue);
-        btnUpby1 = (Button) findViewById(R.id.btnUpby1);
+        delete_grades = (Button) findViewById(R.id.delete_grades);
         btnUpby10 = (Button) findViewById(R.id.btnUpby10);
 
         btnStart.setOnClickListener(this);
         btnStop.setOnClickListener(this);
         btnBind.setOnClickListener(this);
         btnUnbind.setOnClickListener(this);
-        btnUpby1.setOnClickListener(this);
+        delete_grades.setOnClickListener(this);
         btnUpby10.setOnClickListener(this);
 
         automaticBind();
 
+    }
+
+    private void updateFabOncklickListener() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "placeholder",
+                        Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
     }
 
     private void automaticBind() {
@@ -192,6 +203,11 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
                     }
                     textStrValue.setText(builder);
                     break;
+                case PollService.MSG_SUCCESSFUL_EVENT:
+                    textStatus = (TextView) findViewById(R.id.textStatus);
+                    String append = msg.getData().getString("date");
+                    textStatus.append(System.getProperty("line.separator") + append);
+                    break;
                 default:
                     super.handleMessage(msg);
             }
@@ -235,12 +251,25 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
             doBindService();
         } else if (v.equals(btnUnbind)) {
             doUnbindService();
-        } else if (v.equals(btnUpby1)) {
-            sendMessageToService(1);
+        } else if (v.equals(delete_grades)) {
+            sendMessageDelete_grades();
         } else if (v.equals(btnUpby10)) {
             sendMessageToService(10);
         }
     }
+
+    private void sendMessageDelete_grades() {
+        startAndBind();
+            if (mServiceMessenger != null) {
+                try {
+                    Message msg = Message.obtain(null, PollService.MSG_DELETE_GRADES);
+                    msg.replyTo = mMessenger;
+                    mServiceMessenger.send(msg);
+                } catch (RemoteException e) {
+                }
+            }
+    }
+
 
     /**
      * Send data to the service

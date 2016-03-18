@@ -67,7 +67,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/btnUpby1"
-        android:id="@+id/btnUpby1"
+        android:id="@+id/delete_grades"
         android:layout_gravity="center_vertical"
         android:layout_above="@+id/btnUpby10"
         android:layout_alignParentEnd="true" />

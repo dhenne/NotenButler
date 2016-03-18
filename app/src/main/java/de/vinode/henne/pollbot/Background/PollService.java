@@ -17,8 +17,10 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -36,10 +38,9 @@ public class PollService extends Service {
 
     private NotificationManager mNotificationManager;
     private Timer mTimer = new Timer();
-    private int m_lastupdate;
-    int m_time_interval;
+    private static long m_lastupdate;
+    private int m_time_interval = 300;
     private static boolean isRunning = false;
-    private Studienkonto m_studienkonto;
 
     private List<Messenger> mClients = new ArrayList<Messenger>(); // Keeps track of all current registered clients.
     public static final int MSG_REGISTER_CLIENT = 1;
@@ -47,6 +48,8 @@ public class PollService extends Service {
     public static final int MSG_SET_TIME_INTERVAL = 3;
     public static final int MSG_PERSISTENT_LIST = 4;
     public static final int MSG_NEW_LOGIN = 5;
+    public static final int MSG_DELETE_GRADES = 6;
+    public static final int MSG_SUCCESSFUL_EVENT = 7;
 
     public PollService() {
     }
@@ -66,6 +69,10 @@ public class PollService extends Service {
 
     private final Messenger mMessenger = new Messenger(new IncomingMessageHandler()); // Target we publish for clients to send messages to IncomingHandler.
     private static final String LOGTAG = "PollService";
+
+    public static long get_lastupdate() {
+        return m_lastupdate;
+    }
 
     /**
      * Handle incoming messages from MainActivity
@@ -95,6 +102,9 @@ public class PollService extends Service {
                             data.getString(MyActivity.EXTRA_PASSWORD)
                     );
                     break;
+                case MSG_DELETE_GRADES:
+                    Environment.getInstance().deleteGrades(getApplication());
+                    break;
                 default:
                     super.handleMessage(msg);
             }
@@ -106,7 +116,7 @@ public class PollService extends Service {
         public void run() {
             Log.i(LOGTAG, "start retrieving data." + Calendar.getInstance().getTime());
             try {
-                LinkedHashMap<String, Grade> polled_list = m_studienkonto.poll();
+                LinkedHashMap<String, Grade> polled_list = Studienkonto.getInstance(getApplication()).poll();
                 Log.d(LOGTAG, "got list: " + polled_list);
                 LinkedHashSet<String> found = Environment.getInstance().verifyPersistentData(getApplication() , polled_list);
                 if (found.size() > 0) {
@@ -117,9 +127,28 @@ public class PollService extends Service {
                 } else {
                     Log.d(LOGTAG, "no new grades found.");
                 }
-
+                m_lastupdate = System.currentTimeMillis() / 1000;
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                sendSuccessFullEvent(sdf.format(new Date(PollService.get_lastupdate())));
             } catch (Throwable t) { //you should always ultimately catch all exceptions in timer tasks.
                 Log.e("TimerTick", "Timer Tick Failed.", t);
+            }
+        }
+    }
+
+    private void sendSuccessFullEvent(String _date) {
+        Iterator<Messenger> messengerIterator = mClients.iterator();
+        while (messengerIterator.hasNext()) {
+            Messenger messenger = messengerIterator.next();
+            try {
+                Message msg = Message.obtain(null, MSG_SUCCESSFUL_EVENT);
+                Bundle bundle = new Bundle();
+                bundle.putString("date", _date);
+                msg.setData(bundle);
+                messenger.send(msg);
+            } catch (RemoteException e) {
+                // The client is dead. Remove it from the list.
+                mClients.remove(messenger);
             }
         }
     }
@@ -156,7 +185,6 @@ public class PollService extends Service {
         mTimer.scheduleAtFixedRate(new MyTask(), 0, m_time_interval * 1000);
         Log.i(LOGTAG, "Initalized timer: " + m_time_interval);
         isRunning = true;
-        m_studienkonto = Studienkonto.getInstance(getApplication());
         Environment.getInstance().readPersistentData(getApplication());
     }
     /*
