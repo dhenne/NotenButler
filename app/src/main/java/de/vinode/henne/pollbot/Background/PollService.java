@@ -38,9 +38,12 @@ public class PollService extends Service {
 
     private NotificationManager mNotificationManager;
     private Timer mTimer = new Timer();
-    private static long m_lastupdate;
+    private static Date m_lastupdate;
     private int m_time_interval = 300;
     private static boolean isRunning = false;
+
+    private static int m_failcount = 0;
+    private static Date m_serviceStarted;
 
     private List<Messenger> mClients = new ArrayList<Messenger>(); // Keeps track of all current registered clients.
     public static final int MSG_REGISTER_CLIENT = 1;
@@ -49,9 +52,29 @@ public class PollService extends Service {
     public static final int MSG_PERSISTENT_LIST = 4;
     public static final int MSG_NEW_LOGIN = 5;
     public static final int MSG_DELETE_GRADES = 6;
-    public static final int MSG_SUCCESSFUL_EVENT = 7;
+    public static final int MSG_INTERVAL_EVENT = 7;
 
     public PollService() {
+    }
+
+    public static int failcount() {
+        return m_failcount;
+    }
+
+    private static void set_failcount(int m_failcount) {
+        PollService.m_failcount = m_failcount;
+    }
+
+    public static String serviceStarted() {
+        if (m_serviceStarted == null ) {
+            return "not ready";
+        } else {
+            return m_serviceStarted.toString();
+        }
+    }
+
+    private static void set_serviceStarted(Date m_serviceStarted) {
+        PollService.m_serviceStarted = m_serviceStarted;
     }
 
     @Override
@@ -70,8 +93,17 @@ public class PollService extends Service {
     private final Messenger mMessenger = new Messenger(new IncomingMessageHandler()); // Target we publish for clients to send messages to IncomingHandler.
     private static final String LOGTAG = "PollService";
 
-    public static long get_lastupdate() {
+    public static Date get_lastupdate() {
         return m_lastupdate;
+    }
+
+    public static String get_lastupdate_as_string() {
+        if (m_lastupdate == null) {
+            return "never";
+        } else {
+            SimpleDateFormat dateformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            return dateformat.format(get_lastupdate());
+        }
     }
 
     /**
@@ -118,7 +150,7 @@ public class PollService extends Service {
             try {
                 LinkedHashMap<String, Grade> polled_list = Studienkonto.getInstance(getApplication()).poll();
                 Log.d(LOGTAG, "got list: " + polled_list);
-                LinkedHashSet<String> found = Environment.getInstance().verifyPersistentData(getApplication() , polled_list);
+                LinkedHashSet<String> found = Environment.getInstance().verifyPersistentData(getApplication(), polled_list);
                 if (found.size() > 0) {
                     for (String entry : found) {
                         showNotification_new_grade(polled_list.get(entry).id(), entry);
@@ -127,24 +159,29 @@ public class PollService extends Service {
                 } else {
                     Log.d(LOGTAG, "no new grades found.");
                 }
-                m_lastupdate = System.currentTimeMillis() / 1000;
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                sendSuccessFullEvent(sdf.format(new Date(PollService.get_lastupdate())));
+                m_lastupdate = Calendar.getInstance().getTime();
+
+                //sendSuccessFullEvent(get_lastupdate_as_string());
+                Log.i(LOGTAG, "setting last successful update: " + get_lastupdate_as_string());
+                set_failcount(0);
             } catch (Throwable t) { //you should always ultimately catch all exceptions in timer tasks.
                 Log.e("TimerTick", "Timer Tick Failed.", t);
+                increase_failcount();
             }
+            sendMsg(MSG_INTERVAL_EVENT);
         }
     }
 
-    private void sendSuccessFullEvent(String _date) {
+    private static void increase_failcount() {
+        m_failcount +=1;
+    }
+
+    private void sendMsg(int  _message) {
         Iterator<Messenger> messengerIterator = mClients.iterator();
         while (messengerIterator.hasNext()) {
             Messenger messenger = messengerIterator.next();
             try {
-                Message msg = Message.obtain(null, MSG_SUCCESSFUL_EVENT);
-                Bundle bundle = new Bundle();
-                bundle.putString("date", _date);
-                msg.setData(bundle);
+                Message msg = Message.obtain(null, _message);
                 messenger.send(msg);
             } catch (RemoteException e) {
                 // The client is dead. Remove it from the list.
@@ -184,8 +221,9 @@ public class PollService extends Service {
         }
         mTimer.scheduleAtFixedRate(new MyTask(), 0, m_time_interval * 1000);
         Log.i(LOGTAG, "Initalized timer: " + m_time_interval);
-        isRunning = true;
         Environment.getInstance().readPersistentData(getApplication());
+        set_serviceStarted(Calendar.getInstance().getTime());
+        isRunning = true;
     }
     /*
     @Override

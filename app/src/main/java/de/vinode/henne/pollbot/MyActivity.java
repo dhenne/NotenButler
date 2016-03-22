@@ -22,7 +22,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -104,7 +103,6 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
         btnUnbind.setOnClickListener(this);
         delete_grades.setOnClickListener(this);
         btnUpby10.setOnClickListener(this);
-
         automaticBind();
 
     }
@@ -167,7 +165,7 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         mServiceMessenger = new Messenger(service);
-        textStatus.setText("Attached.");
+        updateTextStatus();
         try {
             Message msg = Message.obtain(null, PollService.MSG_REGISTER_CLIENT);
             msg.replyTo = mMessenger;
@@ -187,6 +185,17 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
         }
     }
 
+    private void updateTextStatus() {
+        if ( ! PollService.isRunning() ) {
+            textStatus.setText("service not ready");
+            return;
+        }
+        textStatus.setText("Attached." + System.lineSeparator() + "Last successful update:");
+        textStatus.append(System.lineSeparator() + PollService.get_lastupdate_as_string());
+        textStatus.append(System.lineSeparator() + "Failcounter: " + PollService.failcount());
+        textStatus.append(System.lineSeparator() + "Service started at: " + System.lineSeparator() + PollService.serviceStarted());
+    }
+
     private class IncomingMessageHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -203,10 +212,8 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
                     }
                     textStrValue.setText(builder);
                     break;
-                case PollService.MSG_SUCCESSFUL_EVENT:
-                    textStatus = (TextView) findViewById(R.id.textStatus);
-                    String append = msg.getData().getString("date");
-                    textStatus.append(System.getProperty("line.separator") + append);
+                case PollService.MSG_INTERVAL_EVENT:
+                    updateTextStatus();
                     break;
                 default:
                     super.handleMessage(msg);
