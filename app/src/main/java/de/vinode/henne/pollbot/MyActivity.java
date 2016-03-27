@@ -21,8 +21,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -34,7 +32,7 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
     public final static String EXTRA_LOGIN = "de.vinode.henne.firstapp.LOGIN";
     public final static String EXTRA_PASSWORD = "de.vinode.henne.firstapp.PASSWORD";
 
-    private Button btnStart, btnStop, btnBind, btnUnbind, delete_grades, btnUpby10;
+    private Button btnStart, btnStop, btnBind, btnUnbind, delete_grades, btnToGradesList;
     private TextView textStatus, textIntValue, textStrValue;
     private Messenger mServiceMessenger = null;
     boolean mIsBound;
@@ -95,14 +93,14 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
         textIntValue = (TextView) findViewById(R.id.textIntValue);
         textStrValue = (TextView) findViewById(R.id.textStrValue);
         delete_grades = (Button) findViewById(R.id.delete_grades);
-        btnUpby10 = (Button) findViewById(R.id.btnUpby10);
+        btnToGradesList = (Button) findViewById(R.id.btnToGradesList);
 
         btnStart.setOnClickListener(this);
         btnStop.setOnClickListener(this);
         btnBind.setOnClickListener(this);
         btnUnbind.setOnClickListener(this);
         delete_grades.setOnClickListener(this);
-        btnUpby10.setOnClickListener(this);
+        btnToGradesList.setOnClickListener(this);
         automaticBind();
 
     }
@@ -112,7 +110,7 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "placeholder",
+                Snackbar.make(view, "Stand: " + PollService.get_lastupdate_as_string(),
                         Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -260,8 +258,9 @@ public class MyActivity extends AppCompatActivity implements View.OnClickListene
             doUnbindService();
         } else if (v.equals(delete_grades)) {
             sendMessageDelete_grades();
-        } else if (v.equals(btnUpby10)) {
-            sendMessageToService(10);
+        } else if (v.equals(btnToGradesList)) {
+            Intent intent = new Intent(this, GradesList.class);
+            startActivity(intent);
         }
     }
 

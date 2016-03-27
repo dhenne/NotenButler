@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import de.vinode.henne.pollbot.Background.PollService;
+
 public class DisplayMessageActivity extends AppCompatActivity {
 
     @Override
@@ -24,7 +26,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Stand: " + PollService.get_lastupdate_as_string(), Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });

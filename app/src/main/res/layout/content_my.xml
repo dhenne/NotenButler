@@ -69,14 +69,14 @@
         android:text="@string/btnUpby1"
         android:id="@+id/delete_grades"
         android:layout_gravity="center_vertical"
-        android:layout_above="@+id/btnUpby10"
+        android:layout_above="@+id/btnToGradesList"
         android:layout_alignParentEnd="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/btnUpby10"
-        android:id="@+id/btnUpby10"
+        android:text="@string/btnToGradesList"
+        android:id="@+id/btnToGradesList"
         android:layout_gravity="center_vertical"
         android:layout_above="@+id/login_dialog"
         android:layout_alignParentEnd="true"
