@@ -35,7 +35,9 @@
         android:layout_height="wrap_content"
         android:text=""
         android:id="@+id/textStrValue"
-        android:layout_gravity="bottom" />
+        android:layout_gravity="bottom"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -51,8 +53,8 @@
         android:text="@string/btnBind"
         android:id="@+id/btnBind"
         android:layout_gravity="center_vertical"
-        android:layout_alignTop="@+id/btnUnbind"
-        android:layout_toEndOf="@+id/password_dialog" />
+        android:layout_below="@+id/btnToGradesList"
+        android:layout_toStartOf="@+id/btnUnbind" />
 
     <Button
         android:layout_width="wrap_content"
@@ -60,7 +62,7 @@
         android:text="@string/btnUnbind"
         android:id="@+id/btnUnbind"
         android:layout_gravity="center_vertical"
-        android:layout_centerVertical="true"
+        android:layout_below="@+id/btnToGradesList"
         android:layout_alignParentEnd="true" />
 
     <Button
@@ -69,7 +71,7 @@
         android:text="@string/btnUpby1"
         android:id="@+id/delete_grades"
         android:layout_gravity="center_vertical"
-        android:layout_above="@+id/btnToGradesList"
+        android:layout_below="@+id/btnStop"
         android:layout_alignParentEnd="true" />
 
     <Button
@@ -78,16 +80,15 @@
         android:text="@string/btnToGradesList"
         android:id="@+id/btnToGradesList"
         android:layout_gravity="center_vertical"
-        android:layout_above="@+id/login_dialog"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="111dp" />
+        android:layout_below="@+id/delete_grades"
+        android:layout_alignEnd="@+id/delete_grades" />
 
     <EditText
         android:id="@+id/login_dialog"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:hint="@string/edit_message"
-        android:layout_above="@+id/password_dialog"
+        android:layout_below="@+id/btnBind"
         android:layout_alignParentStart="true" />
 
     <Button
@@ -96,9 +97,9 @@
         android:text="@string/button_send"
         android:onClick="sendLogin"
         android:id="@+id/button"
-        android:layout_marginBottom="53dp"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/textStatus" />
+        android:layout_alignTop="@+id/password_dialog"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/password_dialog" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -107,8 +108,27 @@
         android:ems="10"
         android:hint="@string/hint_password"
         android:id="@+id/password_dialog"
-        android:layout_above="@+id/button"
+        android:layout_below="@+id/login_dialog"
         android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="time"
+        android:ems="10"
+        android:id="@+id/editText"
+        android:layout_below="@+id/button"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/button2"
+        android:layout_alignBottom="@+id/editText"
+        android:layout_below="@+id/button"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/editText" />
 
 
 </RelativeLayout>
